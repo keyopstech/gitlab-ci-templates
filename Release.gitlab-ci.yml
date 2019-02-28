@@ -1,0 +1,40 @@
+stages:
+- release
+
+# Create a tag
+# Need to be passed (with before_script export env var):
+# - TAG_NAME: tag to create
+# - KEYOPS_CI_KEY: private ssh key use to push tag
+.create-tag-template: &create_tag
+  image:
+    name: alpine/git
+    entrypoint: [""]
+  script:
+  - echo "Creating tag '$TAG_NAME'"
+  - git config --global user.email "ci@keyops.tech" && git config --global user.name "Keyops CI"
+  - git tag -a "$TAG_NAME" -m "Automated release $TAG_NAME"
+  - export GIT_SSH_REPO=$(echo "$CI_REPOSITORY_URL" | sed 's/^.*gitlab.com\//git@gitlab.com:/g' | sed 's/\/$//g')
+  - echo "Setting origin $GIT_SSH_REPO"
+  - git remote set-url origin $GIT_SSH_REPO
+  - echo "$KEYOPS_CI_KEY" > /id_rsa_ci && chmod 0600 /id_rsa_ci
+  - GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no -i /id_rsa_ci" git push origin "$TAG_NAME"
+
+tag-release-candidate:
+  stage: release
+  before_script:
+  - export RELEASE_NAME=$(echo "$CI_COMMIT_REF_NAME" | sed 's/\//-/g') # release/1.2.3 => release-1.2.3
+  - export TAG_NAME=$(echo "$RELEASE_NAME-RC-$(date +'%Y-%m-%d_%H-%M')")
+  when: manual
+  only:
+  - /^release\//
+  <<: *create_tag
+
+tag-release:
+  stage: release
+  before_script:
+  - export RELEASE_NAME=$(echo "$CI_COMMIT_REF_NAME" | sed 's/\//-/g') # release/1.2.3 => release-1.2.3
+  - export TAG_NAME=$(echo "$RELEASE_NAME")
+  when: manual
+  only:
+  - /^release\//
+  <<: *create_tag
