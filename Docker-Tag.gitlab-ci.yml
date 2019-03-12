@@ -1,0 +1,33 @@
+stages:
+- release
+
+# Create a Docker tag
+# Require env var TAG_NAME: tag to create
+.create-docker-tag-template: &create_docker_tag
+  script:
+  - export TAG_RELEASE=${CI_REGISTRY}/${CI_PROJECT_PATH}:$TAG_NAME
+  - docker pull $TEST_IMAGE
+  - docker tag $TEST_IMAGE $TAG_RELEASE
+  - docker push $TAG_RELEASE
+
+tag-docker-rc:
+  stage: release
+  before_script:
+  - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
+  - export RELEASE_NAME=$(echo "$CI_COMMIT_REF_NAME" | sed 's/\//-/g') # release/1.2.3 => release-1.2.3
+  - export TAG_NAME=$(echo "$RELEASE_NAME-RC-$(date +'%Y-%m-%d_%H-%M')")
+  when: manual
+  only:
+  - /^release\//
+  <<: *create_docker_tag
+
+tag-docker-release:
+  stage: release
+  before_script:
+  - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
+  - export RELEASE_NAME=$(echo "$CI_COMMIT_REF_NAME" | sed 's/\//-/g') # release/1.2.3 => release-1.2.3
+  - export TAG_NAME=$(echo "$RELEASE_NAME")
+  when: manual
+  only:
+  - /^release\//
+  <<: *create_docker_tag
