@@ -19,6 +19,7 @@ tag-docker-rc:
   when: manual
   only:
   - /^release\//
+  - /^hotfix\//
   <<: *create_docker_tag
 
 tag-docker-release:
@@ -30,4 +31,5 @@ tag-docker-release:
   when: manual
   only:
   - /^release\//
+  - /^hotfix\//
   <<: *create_docker_tag

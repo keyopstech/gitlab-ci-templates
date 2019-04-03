@@ -27,6 +27,7 @@ tag-release-candidate:
   when: manual
   only:
   - /^release\//
+  - /^hotfix\//
   <<: *create_tag
 
 tag-release:
@@ -37,4 +38,5 @@ tag-release:
   when: manual
   only:
   - /^release\//
+  - /^hotfix\//
   <<: *create_tag
