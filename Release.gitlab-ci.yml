@@ -19,7 +19,7 @@ stages:
   - echo "$KEYOPS_CI_KEY" > /id_rsa_ci && chmod 0600 /id_rsa_ci
   - GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no -i /id_rsa_ci" git push origin "$TAG_NAME"
 
-tag-release-candidate:
+tag-rc:
   stage: release
   before_script:
   - export RELEASE_NAME=$(echo "$CI_COMMIT_REF_NAME" | sed 's/\//-/g') # release/1.2.3 => release-1.2.3
